@@ -1,14 +1,28 @@
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+// Handle high-DPI screens
+const dpr = window.devicePixelRatio || 1;
 
-window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+function resizeCanvas() {
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    ctx.scale(dpr, dpr);
     initFountains();
+}
+
+resizeCanvas();
+
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', () => {
+    setTimeout(resizeCanvas, 100);
 });
+
+// Prevent default touch behaviors
+document.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
 // Oil colors - dark, glossy appearance
 const oilColors = [
@@ -16,8 +30,8 @@ const oilColors = [
     'rgba(30, 30, 35, 0.85)',
     'rgba(25, 25, 30, 0.9)',
     'rgba(15, 15, 20, 0.95)',
-    'rgba(35, 30, 25, 0.85)', // slight brown tint
-    'rgba(40, 35, 30, 0.8)'   // brownish oil
+    'rgba(35, 30, 25, 0.85)',
+    'rgba(40, 35, 30, 0.8)'
 ];
 
 // Highlight colors for glossy effect
@@ -52,7 +66,6 @@ class Particle {
         this.y += this.speedY;
         this.life -= this.decay;
 
-        // Reset particle when it falls below fountain or fades out
         if (this.y > this.fountain.y || this.life <= 0) {
             this.reset(this.fountain.x, this.fountain.y);
         }
@@ -61,13 +74,11 @@ class Particle {
     draw() {
         ctx.save();
 
-        // Main oil droplet
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size * this.life, 0, Math.PI * 2);
         ctx.fillStyle = this.color;
         ctx.fill();
 
-        // Glossy highlight
         ctx.beginPath();
         ctx.arc(
             this.x - this.size * 0.3,
@@ -100,7 +111,6 @@ class Fountain {
     }
 
     draw() {
-        // Draw fountain base
         ctx.save();
 
         // Base pool
@@ -118,14 +128,12 @@ class Fountain {
         ctx.fillStyle = '#2a2a30';
         ctx.fillRect(this.x - 5, this.y - 5, 10, 15);
 
-        // Metallic highlight on nozzle
         ctx.beginPath();
         ctx.fillStyle = 'rgba(80, 80, 90, 0.5)';
         ctx.fillRect(this.x - 5, this.y - 5, 3, 15);
 
         ctx.restore();
 
-        // Draw particles
         this.particles.forEach(particle => particle.draw());
     }
 }
@@ -134,31 +142,39 @@ let fountains = [];
 
 function initFountains() {
     fountains = [];
-    const fountainCount = Math.min(5, Math.floor(canvas.width / 200));
-    const spacing = canvas.width / (fountainCount + 1);
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+
+    // Adjust fountain count for mobile (fewer on smaller screens)
+    const minSpacing = screenWidth < 500 ? 120 : 200;
+    const fountainCount = Math.max(2, Math.min(5, Math.floor(screenWidth / minSpacing)));
+    const spacing = screenWidth / (fountainCount + 1);
+
+    // Adjust particle count for mobile performance
+    const isMobile = screenWidth < 768;
+    const baseParticles = isMobile ? 50 : 80;
 
     for (let i = 0; i < fountainCount; i++) {
         const x = spacing * (i + 1);
-        const y = canvas.height - 50;
-        const particleCount = 80 + Math.random() * 40;
-        const power = 10 + Math.random() * 5;
+        const y = screenHeight - 50;
+        const particleCount = baseParticles + Math.random() * 30;
+        const power = isMobile ? 8 + Math.random() * 4 : 10 + Math.random() * 5;
         fountains.push(new Fountain(x, y, particleCount, power));
     }
 }
 
 function drawBackground() {
-    // Create subtle ground
-    const groundGradient = ctx.createLinearGradient(0, canvas.height - 100, 0, canvas.height);
+    const screenHeight = window.innerHeight;
+    const groundGradient = ctx.createLinearGradient(0, screenHeight - 100, 0, screenHeight);
     groundGradient.addColorStop(0, 'transparent');
     groundGradient.addColorStop(1, 'rgba(10, 10, 15, 0.8)');
     ctx.fillStyle = groundGradient;
-    ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+    ctx.fillRect(0, screenHeight - 100, window.innerWidth, 100);
 }
 
 function animate() {
-    // Clear with semi-transparent black for trail effect
     ctx.fillStyle = 'rgba(15, 15, 25, 0.3)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
     drawBackground();
 
@@ -170,6 +186,32 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-// Initialize and start animation
+// Touch interaction - tap to boost nearest fountain
+canvas.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    const x = touch.clientX;
+
+    // Find nearest fountain and give it a boost
+    let nearest = fountains[0];
+    let minDist = Math.abs(fountains[0].x - x);
+
+    fountains.forEach(f => {
+        const dist = Math.abs(f.x - x);
+        if (dist < minDist) {
+            minDist = dist;
+            nearest = f;
+        }
+    });
+
+    // Boost the fountain temporarily
+    nearest.particles.forEach(p => {
+        if (Math.random() > 0.5) {
+            p.speedY = -(15 + Math.random() * 5);
+            p.speedX = (Math.random() - 0.5) * 6;
+        }
+    });
+});
+
+// Initialize and start
 initFountains();
 animate();

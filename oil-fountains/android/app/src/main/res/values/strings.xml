@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Oil Fountains</string>
+    <string name="title_activity_main">Oil Fountains</string>
+    <string name="package_name">com.parisb81.oilfountains</string>
+    <string name="custom_url_scheme">com.parisb81.oilfountains</string>
+</resources>
