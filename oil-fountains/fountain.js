@@ -1,44 +1,70 @@
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+// Wait for DOM to be fully ready
+document.addEventListener('DOMContentLoaded', init);
+window.addEventListener('load', init);
 
-// Handle high-DPI screens
-const dpr = window.devicePixelRatio || 1;
+let initialized = false;
+let canvas, ctx;
+let fountains = [];
+let screenWidth, screenHeight;
+
+function init() {
+    if (initialized) return;
+    initialized = true;
+
+    canvas = document.getElementById('canvas');
+    ctx = canvas.getContext('2d');
+
+    // Wait a moment for WebView to settle
+    setTimeout(() => {
+        resizeCanvas();
+        animate();
+    }, 100);
+
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('orientationchange', () => {
+        setTimeout(resizeCanvas, 200);
+    });
+
+    // Prevent default touch behaviors
+    document.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+    document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+
+    // Touch interaction - tap to boost nearest fountain
+    document.addEventListener('touchstart', handleTouch, { passive: false });
+    document.addEventListener('click', handleClick);
+}
 
 function resizeCanvas() {
-    canvas.width = window.innerWidth * dpr;
-    canvas.height = window.innerHeight * dpr;
-    canvas.style.width = window.innerWidth + 'px';
-    canvas.style.height = window.innerHeight + 'px';
-    ctx.scale(dpr, dpr);
+    screenWidth = window.innerWidth || document.documentElement.clientWidth || 360;
+    screenHeight = window.innerHeight || document.documentElement.clientHeight || 640;
+
+    // Ensure we have valid dimensions
+    if (screenWidth < 10) screenWidth = 360;
+    if (screenHeight < 10) screenHeight = 640;
+
+    canvas.width = screenWidth;
+    canvas.height = screenHeight;
+    canvas.style.width = screenWidth + 'px';
+    canvas.style.height = screenHeight + 'px';
+
     initFountains();
 }
 
-resizeCanvas();
-
-window.addEventListener('resize', resizeCanvas);
-window.addEventListener('orientationchange', () => {
-    setTimeout(resizeCanvas, 100);
-});
-
-// Prevent default touch behaviors
-document.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
-document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
-
-// Oil colors - dark, glossy appearance
+// Oil colors - made more visible with lighter shades
 const oilColors = [
-    'rgba(20, 20, 25, 0.9)',
-    'rgba(30, 30, 35, 0.85)',
-    'rgba(25, 25, 30, 0.9)',
-    'rgba(15, 15, 20, 0.95)',
-    'rgba(35, 30, 25, 0.85)',
-    'rgba(40, 35, 30, 0.8)'
+    'rgba(40, 40, 50, 0.95)',
+    'rgba(50, 50, 60, 0.9)',
+    'rgba(45, 45, 55, 0.95)',
+    'rgba(35, 35, 45, 0.95)',
+    'rgba(55, 45, 40, 0.9)',
+    'rgba(60, 50, 45, 0.9)'
 ];
 
-// Highlight colors for glossy effect
+// Highlight colors - brighter for visibility
 const highlightColors = [
-    'rgba(60, 60, 70, 0.6)',
-    'rgba(70, 70, 80, 0.5)',
-    'rgba(80, 75, 70, 0.5)'
+    'rgba(100, 100, 120, 0.7)',
+    'rgba(110, 110, 130, 0.6)',
+    'rgba(120, 115, 110, 0.6)'
 ];
 
 class Particle {
@@ -50,14 +76,14 @@ class Particle {
     reset(x, y) {
         this.x = x + (Math.random() - 0.5) * 10;
         this.y = y;
-        this.size = Math.random() * 6 + 3;
+        this.size = Math.random() * 6 + 4;
         this.speedY = -(Math.random() * 8 + this.fountain.power);
         this.speedX = (Math.random() - 0.5) * 3;
         this.gravity = 0.15;
         this.color = oilColors[Math.floor(Math.random() * oilColors.length)];
         this.highlight = highlightColors[Math.floor(Math.random() * highlightColors.length)];
         this.life = 1;
-        this.decay = Math.random() * 0.005 + 0.003;
+        this.decay = Math.random() * 0.004 + 0.002;
     }
 
     update() {
@@ -72,25 +98,26 @@ class Particle {
     }
 
     draw() {
-        ctx.save();
+        const radius = this.size * this.life;
+        if (radius < 0.5) return;
 
+        // Main oil droplet
         ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size * this.life, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, radius, 0, Math.PI * 2);
         ctx.fillStyle = this.color;
         ctx.fill();
 
+        // Glossy highlight
         ctx.beginPath();
         ctx.arc(
-            this.x - this.size * 0.3,
-            this.y - this.size * 0.3,
-            this.size * 0.4 * this.life,
+            this.x - radius * 0.3,
+            this.y - radius * 0.3,
+            radius * 0.4,
             0,
             Math.PI * 2
         );
         ctx.fillStyle = this.highlight;
         ctx.fill();
-
-        ctx.restore();
     }
 }
 
@@ -111,70 +138,62 @@ class Fountain {
     }
 
     draw() {
-        ctx.save();
-
-        // Base pool
+        // Base pool - more visible
         ctx.beginPath();
-        ctx.ellipse(this.x, this.y + 10, 40, 15, 0, 0, Math.PI * 2);
-        const poolGradient = ctx.createRadialGradient(this.x, this.y + 10, 0, this.x, this.y + 10, 40);
-        poolGradient.addColorStop(0, 'rgba(30, 30, 35, 0.9)');
-        poolGradient.addColorStop(0.7, 'rgba(20, 20, 25, 0.8)');
-        poolGradient.addColorStop(1, 'rgba(15, 15, 20, 0.6)');
-        ctx.fillStyle = poolGradient;
+        ctx.ellipse(this.x, this.y + 10, 45, 18, 0, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(50, 50, 60, 0.9)';
         ctx.fill();
+        ctx.strokeStyle = 'rgba(80, 80, 100, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
         // Nozzle
-        ctx.beginPath();
-        ctx.fillStyle = '#2a2a30';
-        ctx.fillRect(this.x - 5, this.y - 5, 10, 15);
+        ctx.fillStyle = '#3a3a45';
+        ctx.fillRect(this.x - 6, this.y - 6, 12, 16);
 
-        ctx.beginPath();
-        ctx.fillStyle = 'rgba(80, 80, 90, 0.5)';
-        ctx.fillRect(this.x - 5, this.y - 5, 3, 15);
+        // Metallic highlight
+        ctx.fillStyle = 'rgba(100, 100, 120, 0.6)';
+        ctx.fillRect(this.x - 6, this.y - 6, 4, 16);
 
-        ctx.restore();
-
+        // Draw particles
         this.particles.forEach(particle => particle.draw());
     }
 }
 
-let fountains = [];
-
 function initFountains() {
     fountains = [];
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
 
-    // Adjust fountain count for mobile (fewer on smaller screens)
-    const minSpacing = screenWidth < 500 ? 120 : 200;
+    // Adjust fountain count for screen size
+    const minSpacing = screenWidth < 500 ? 100 : 180;
     const fountainCount = Math.max(2, Math.min(5, Math.floor(screenWidth / minSpacing)));
     const spacing = screenWidth / (fountainCount + 1);
 
-    // Adjust particle count for mobile performance
+    // Adjust for mobile
     const isMobile = screenWidth < 768;
-    const baseParticles = isMobile ? 50 : 80;
+    const baseParticles = isMobile ? 40 : 70;
 
     for (let i = 0; i < fountainCount; i++) {
         const x = spacing * (i + 1);
-        const y = screenHeight - 50;
-        const particleCount = baseParticles + Math.random() * 30;
-        const power = isMobile ? 8 + Math.random() * 4 : 10 + Math.random() * 5;
+        const y = screenHeight - 60;
+        const particleCount = baseParticles + Math.random() * 25;
+        const power = isMobile ? 7 + Math.random() * 4 : 9 + Math.random() * 5;
         fountains.push(new Fountain(x, y, particleCount, power));
     }
 }
 
 function drawBackground() {
-    const screenHeight = window.innerHeight;
-    const groundGradient = ctx.createLinearGradient(0, screenHeight - 100, 0, screenHeight);
+    // Ground gradient
+    const groundGradient = ctx.createLinearGradient(0, screenHeight - 120, 0, screenHeight);
     groundGradient.addColorStop(0, 'transparent');
-    groundGradient.addColorStop(1, 'rgba(10, 10, 15, 0.8)');
+    groundGradient.addColorStop(1, 'rgba(20, 20, 30, 0.9)');
     ctx.fillStyle = groundGradient;
-    ctx.fillRect(0, screenHeight - 100, window.innerWidth, 100);
+    ctx.fillRect(0, screenHeight - 120, screenWidth, 120);
 }
 
 function animate() {
-    ctx.fillStyle = 'rgba(15, 15, 25, 0.3)';
-    ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+    // Clear with dark background
+    ctx.fillStyle = 'rgba(22, 33, 62, 0.35)';
+    ctx.fillRect(0, 0, screenWidth, screenHeight);
 
     drawBackground();
 
@@ -186,12 +205,18 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-// Touch interaction - tap to boost nearest fountain
-canvas.addEventListener('touchstart', (e) => {
+function handleTouch(e) {
+    if (!fountains.length) return;
     const touch = e.touches[0];
-    const x = touch.clientX;
+    boostNearestFountain(touch.clientX);
+}
 
-    // Find nearest fountain and give it a boost
+function handleClick(e) {
+    if (!fountains.length) return;
+    boostNearestFountain(e.clientX);
+}
+
+function boostNearestFountain(x) {
     let nearest = fountains[0];
     let minDist = Math.abs(fountains[0].x - x);
 
@@ -203,15 +228,11 @@ canvas.addEventListener('touchstart', (e) => {
         }
     });
 
-    // Boost the fountain temporarily
+    // Boost the fountain
     nearest.particles.forEach(p => {
-        if (Math.random() > 0.5) {
-            p.speedY = -(15 + Math.random() * 5);
+        if (Math.random() > 0.4) {
+            p.speedY = -(14 + Math.random() * 6);
             p.speedX = (Math.random() - 0.5) * 6;
         }
     });
-});
-
-// Initialize and start
-initFountains();
-animate();
+}
