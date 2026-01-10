@@ -1,32 +1,42 @@
 # Oil Fountains Animation
 
-A visually appealing HTML5 canvas animation featuring multiple oil fountains with dark, glossy particles shooting upward and falling back down.
+A visually appealing animated oil fountain simulation featuring multiple fountains with dark, glossy particles shooting upward and falling back down.
 
-## How to Run
+Available for **Web Browser**, **Windows Desktop**, and **Android**.
 
-### Option 1: Direct File Open
-Simply double-click `index.html` to open it in your default web browser.
+## Platforms
 
-### Option 2: Using a Local Server (Recommended)
-For the best experience, serve the files using a local web server:
+### 🌐 Web Browser
+Simply double-click `index.html` to open it in your default web browser, or use a local server for the best experience.
 
 **Using Python:**
 ```bash
-# Python 3
 python -m http.server 8000
-
 # Then open http://localhost:8000 in your browser
 ```
 
-**Using Node.js (with http-server):**
+**Using Node.js:**
 ```bash
 npx http-server
-
 # Then open http://localhost:8080 in your browser
 ```
 
 **Using VS Code:**
 Install the "Live Server" extension and click "Go Live" in the status bar.
+
+### 💻 Windows Desktop (Transparent Overlay)
+Download from [Releases](https://github.com/ParisB81/oil-fountains/releases) or run:
+- Double-click `Start Fountains.bat`
+- Or run: `pythonw oil_fountains.py`
+
+**Special feature:** Transparent background shows your desktop wallpaper and icons behind the fountains!
+
+**To stop:** Click on a fountain, then press Escape. Or use `Stop Fountains.bat`.
+
+### 📱 Android
+Download `OilFountains.apk` from [Releases](https://github.com/ParisB81/oil-fountains/releases) and install on your Android device.
+
+You may need to enable "Install from unknown sources" in your Android settings.
 
 ## Features
 
@@ -37,11 +47,24 @@ Install the "Live Server" extension and click "Go Live" in the status bar.
 - Smooth particle trail effects
 - Metallic fountain nozzles with pool bases
 
-## Files
+## Technical Details
 
+### Browser Version
 - `index.html` - Main HTML file with canvas element
 - `fountain.js` - JavaScript animation logic
-- `README.md` - This documentation
+- Colored background (customizable)
+
+### Windows Desktop Version
+- `oil_fountains.py` - Python/Tkinter transparent overlay
+- `OilFountains.exe` - Standalone executable (no Python needed)
+- `Start Fountains.bat` / `Stop Fountains.bat` - Launch/kill scripts
+- **Unique feature:** Transparent background using Tkinter's `-transparentcolor`
+
+### Android Version
+- Built with Capacitor (wraps web version in native WebView)
+- `OilFountains.apk` - Android app package
+- Black background (Android apps cannot be transparent over home screen)
+- Full-screen immersive mode
 
 ## Browser Support
 
@@ -50,3 +73,9 @@ Works in all modern browsers that support HTML5 Canvas:
 - Firefox
 - Safari
 - Edge
+
+## Documentation
+
+- `README.md` - This file
+- `TUTORIAL.md` - Detailed tutorial for building the project
+- `CLAUDE.md` - Technical context and development notes

@@ -33,12 +33,32 @@ self.root.attributes('-topmost', True)
 - Reuses existing JavaScript code
 - Simple build process with Android Studio
 
+### Android Background: Black (Not Transparent)
+**Why black instead of transparent?**
+- Android apps cannot be transparent over the home screen
+- Security restriction: apps run in their own activity/window
+- WebView cannot show desktop/home screen behind it
+- Unlike Windows Tkinter, Android has no `-transparentcolor` equivalent
+
+**Options considered:**
+1. **Black background** (current) - Clean, simple, shows fountains clearly
+2. Colored background - Could be any solid color
+3. Background image - Static decorative image
+4. Live Wallpaper - Would require major restructuring, performance issues
+
+**Decision:** Keep black background. Transparency is a unique Windows desktop feature.
+
 ## Known Issues & Gotchas
 
 ### Android Dark Screen Issue (Fixed)
 - Problem: App showed dark screen, no animation
 - Cause: JavaScript ran before DOM was ready, `window.innerWidth` was 0
 - Solution: Wait for `DOMContentLoaded`, add dimension fallbacks
+
+### Android Background Transparency (Not Possible)
+- Windows version has transparent overlay (shows desktop)
+- Android version has black background (by design, not a bug)
+- This is a platform limitation, not a code issue
 
 ### Windows Executable Size
 - `OilFountains.exe` is ~11MB (PyInstaller bundles Python runtime)
