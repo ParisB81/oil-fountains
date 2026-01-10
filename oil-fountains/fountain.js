@@ -182,18 +182,17 @@ function initFountains() {
 }
 
 function drawBackground() {
-    // Ground gradient
+    // Ground gradient - subtle for transparency
     const groundGradient = ctx.createLinearGradient(0, screenHeight - 120, 0, screenHeight);
     groundGradient.addColorStop(0, 'transparent');
-    groundGradient.addColorStop(1, 'rgba(20, 20, 30, 0.9)');
+    groundGradient.addColorStop(1, 'rgba(20, 20, 30, 0.3)');
     ctx.fillStyle = groundGradient;
     ctx.fillRect(0, screenHeight - 120, screenWidth, 120);
 }
 
 function animate() {
-    // Clear with dark background
-    ctx.fillStyle = 'rgba(22, 33, 62, 0.35)';
-    ctx.fillRect(0, 0, screenWidth, screenHeight);
+    // Clear canvas with transparency
+    ctx.clearRect(0, 0, screenWidth, screenHeight);
 
     drawBackground();
 
