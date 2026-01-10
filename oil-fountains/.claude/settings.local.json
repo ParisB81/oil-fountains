@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx cap sync:*)",
+      "Bash(where npx:*)",
+      "Bash(node --version:*)",
+      "Bash(xcopy:*)",
+      "Bash(cmd /c \"cd /d C:\\\\00 Paris\\\\oil-fountains && npx cap sync android\")",
+      "Bash(cmd /c \"where npm\")",
+      "Bash(cmd /c npx cap sync android)",
+      "Bash(cmd /c:*)",
+      "Bash(dir \"node_modules\\\\.bin\\\\cap*\")",
+      "Bash(ls:*)",
+      "Bash(./node_modules/.bin/cap sync:*)",
+      "Bash(./gradlew assembleDebug:*)",
+      "Bash(gradlew.bat assembleDebug:*)",
+      "Bash(powershell -Command \"cd ''C:\\\\00 Paris\\\\oil-fountains\\\\android''; .\\\\gradlew.bat assembleDebug\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh release list:*)",
+      "Bash(export JAVA_HOME=\"/c/Program Files/Android/Android Studio/jbr\")",
+      "Bash(where:*)"
+    ]
+  }
+}
